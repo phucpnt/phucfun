@@ -1,0 +1,19 @@
+{
+  "name": "notes",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "phucpnt <phuc.phan@sentifi.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/notes.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "phucfun",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "lerna": "^3.22.1"
+  }
+}
