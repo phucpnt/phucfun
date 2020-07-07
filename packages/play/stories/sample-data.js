@@ -104,7 +104,7 @@ export const events = [
     },
     groupingInfo: { id: 1194, name: "Technological Events" },
     period: {
-      value: 1.5636363636363635,
+      value: -1.5636363636363635,
       label: "High",
       valueChange: 1.5636363636363635,
     },
