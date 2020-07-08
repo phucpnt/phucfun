@@ -210,20 +210,20 @@ function RadiusChart({
           tooltip.style("display", "none");
           tooltip.datum({ tid: 0, eventId: 0 });
         }, 500);
-        tooltip.datum({ ...tooltip.datum(), tid });
+        tooltip.datum((d) => ({ ...d, tid }));
       };
 
       d3.selectAll(".bar")
         .on("mouseover", (e) => {
           const { eventId: ttEventId } = tooltip.datum();
-          console.info('eventId...', ttEventId, e.eventInfo.id)
+          console.info("eventId...", ttEventId, e.eventInfo.id);
           if (ttEventId !== e.eventInfo.id) {
             tooltip
               .style("display", "block")
               .style("left", d3.event.pageX + 5 + "px")
               .style("top", d3.event.pageY + 5 + "px")
               .text(e.eventInfo.name)
-              .datum({ eventId: e.eventInfo.id });
+              .datum((d) => ({ ...d, eventId: e.eventInfo.id }));
           }
           preventHide();
         })
