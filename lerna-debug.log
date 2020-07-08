@@ -1,17 +1,10 @@
 0 silly argv {
-0 silly argv   _: [ 'create' ],
+0 silly argv   _: [ 'bootstrap' ],
 0 silly argv   lernaVersion: '3.22.1',
-0 silly argv   '$0': 'node_modules/.bin/lerna',
-0 silly argv   name: 'notes'
+0 silly argv   '$0': 'node_modules/.bin/lerna'
 0 silly argv }
 1 notice cli v3.22.1
 2 verbose rootPath /Users/phucpnt/projects/phucfun
-3 error Error: Command failed: git config --get user.name
-3 error
-3 error
-3 error     at makeError (/Users/phucpnt/projects/phucfun/node_modules/execa/index.js:174:9)
-3 error     at Function.module.exports.sync (/Users/phucpnt/projects/phucfun/node_modules/execa/index.js:338:15)
-3 error     at Object.execSync (/Users/phucpnt/projects/phucfun/node_modules/@lerna/child-process/index.js:26:16)
-3 error     at CreateCommand.gitConfig (/Users/phucpnt/projects/phucfun/node_modules/@lerna/create/index.js:181:34)
-3 error     at CreateCommand.initialize (/Users/phucpnt/projects/phucfun/node_modules/@lerna/create/index.js:103:46)
-3 error     at /Users/phucpnt/projects/phucfun/node_modules/@lerna/command/index.js:272:24
+3 error JSONError: Unexpected token } in JSON at position 547 while parsing near '...py.js": "^6.2.4",  },  "devDependencie...' in packages/play/package.json
+3 error     at module.exports (/Users/phucpnt/projects/phucfun/node_modules/parse-json/index.js:26:19)
+3 error     at parse (/Users/phucpnt/projects/phucfun/node_modules/load-json-file/index.js:15:9)
