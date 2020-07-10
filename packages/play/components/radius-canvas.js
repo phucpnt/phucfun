@@ -81,7 +81,7 @@ function RadiusChart({
         });
 
       let gutter = 8;
-      let thinkness = 28;
+      let thinkness = 24;
 
       // draw the chart's grid
       const grid = svg.append("g").attr("transform", "scale(-1)");
@@ -115,6 +115,27 @@ function RadiusChart({
           .text(fmtAttBuzz(scaleAngle.invert((Math.PI * angle) / 180)));
       });
 
+      function setupCanvas(canvas) {
+        // Get the device pixel ratio, falling back to 1.
+        var dpr = window.devicePixelRatio || 1;
+        // Get the size of the canvas in CSS pixels.
+        var rect = canvas.getBoundingClientRect();
+        // Give the canvas pixel dimensions of their CSS
+        // size * the device pixel ratio.
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        var ctx = canvas.getContext('2d');
+        // Scale all drawing operations by the dpr, so you
+        // don't have to worry about the difference.
+        ctx.scale(dpr, dpr);
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.translate(canvas.width / (2 * dpr), canvas.height / (2 * dpr));
+        return ctx;
+      }
+      
+
+
       function drawChartBar() {
         const canvas = document.createElement("canvas");
         canvas.style.position = "absolute";
@@ -123,18 +144,11 @@ function RadiusChart({
         canvas.style.left = 0;
         canvas.style.width = "100%";
         canvas.style.height = "100%";
-        canvas.setAttribute("width", bw);
-        canvas.setAttribute("height", bw);
+
         cc.current.append(canvas);
 
+        const context = setupCanvas(canvas)
         const actualRaidusLength = hbw - options.xAxisMargin / 2;
-
-        const context = canvas.getContext("2d");
-        console.info("canvas...", canvas.width, canvas.height);
-
-        context.save();
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.translate(canvas.width / 2, canvas.height / 2);
 
         context.beginPath();
         const memChart = d3.create("memchart");
@@ -144,25 +158,75 @@ function RadiusChart({
           .join("memchart:bar")
           .call((g) => {
             // draw the single curve chart: include the label and curve bar
-            const p = g
-              .append("memchart.bar.stick")
-              .attr("class", "bar")
-              .attr("data-event-index", (e, index) => index);
-            p.attr("d", (e, index) => {
-              context.beginPath();
-              const arc = d3s
-                .arc()
-                .context(context)
-                .innerRadius(
-                  actualRaidusLength - thinkness - (thinkness + gutter) * index
-                )
-                .outerRadius(actualRaidusLength - (thinkness + gutter) * index)
-                .startAngle(0)
-                .endAngle(scaleAngle(100 * e.period.value));
-              arc(e);
-              context.fillStyle = colors[index];
-              context.fill();
-            });
+            function noAnimation() {
+              const p = g
+                .append("memchart.bar.stick")
+                .attr("class", "bar")
+                .attr("data-event-index", (e, index) => index);
+              p.attr("d", (e, index) => {
+                context.beginPath();
+                const arc = d3s
+                  .arc()
+                  .context(context)
+                  .innerRadius(
+                    actualRaidusLength -
+                      thinkness -
+                      (thinkness + gutter) * index
+                  )
+                  .outerRadius(
+                    actualRaidusLength - (thinkness + gutter) * index
+                  )
+                  .startAngle(0)
+                  .endAngle(scaleAngle(100 * e.period.value));
+                arc(e);
+                context.fillStyle = colors[index];
+                context.fill();
+              });
+            }
+
+            function withAnimation() {
+              const p = g
+                .append("memchart.bar.stick")
+                .attr("class", "bar")
+                .attr("data-event-index", (e, index) => index);
+              p.transition()
+                .duration(750)
+                .ease(d3.easeQuadIn)
+                .attrTween("d", (e, index) => {
+                  const arc = d3s
+                    .arc()
+                    .context(context)
+                    .innerRadius(
+                      actualRaidusLength -
+                        thinkness -
+                        (thinkness + gutter) * index
+                    )
+                    .outerRadius(
+                      actualRaidusLength - (thinkness + gutter) * index
+                    )
+                    .startAngle(0);
+                  const interpolate = d3.interpolate(
+                    0,
+                    scaleAngle(100 * e.period.value)
+                  );
+
+                  return (t) => {
+                    context.save();
+                    context.beginPath();
+                    arc({
+                      endAngle: interpolate(t),
+                    });
+                    context.strokeStyle = "#fff";
+                    context.stroke();
+                    context.fillStyle = colors[index];
+                    context.fill();
+                    context.restore();
+                  };
+                });
+            }
+
+            // noAnimation();
+            withAnimation();
 
             // p.transition()
             //   .duration(750)
