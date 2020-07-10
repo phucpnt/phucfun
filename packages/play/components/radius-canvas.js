@@ -1,18 +1,7 @@
 import React from "react";
-import * as ReactDOM from "react-dom";
-import { action } from "@storybook/addon-actions";
-import { Button } from "@storybook/react/demo";
 import * as d3 from "d3";
 import * as d3s from "d3-shape";
-import { events as demoEvents } from "./sample-data";
 import { createUseStyles } from "react-jss";
-import {RadiusChart as RadiusCanvas} from '../components/radius-canvas';
-import {RadiusChart as RadiusSvg} from '../components/radius-svg';
-
-export default {
-  title: "D3",
-  component: Button,
-};
 
 const colors = [
   "#114559",
@@ -39,21 +28,26 @@ const useStyle = createUseStyles({
 });
 
 function RadiusChart({
-  events = demoEvents,
+  events = [],
   options = { xAxisMargin: 100 },
-  style = { height: 600, width: 600, fontFamily: "Roboto, sans-serif" },
+  style = {
+    height: 600,
+    width: 600,
+    fontFamily: "Roboto, sans-serif",
+    position: "relative",
+  },
   tooltipRender = () => null,
 }) {
   const classes = useStyle();
   const cc = React.useRef();
   const ttc = React.useRef();
-  const [ eventFocus, setEventFocus ] = React.useState(null);
+  const [eventFocus, setEventFocus] = React.useState(null);
 
   const bw = 600;
   const hbw = 300;
   React.useEffect(() => {
     if (cc && cc.current) {
-      const tooltipContainer = ttc.current;
+      cc.current.style.position = "relative";
 
       const scaleAngle = d3
         .scaleLinear()
@@ -121,72 +115,82 @@ function RadiusChart({
           .text(fmtAttBuzz(scaleAngle.invert((Math.PI * angle) / 180)));
       });
 
-      // draw the radius chart
-      const chart = svg
-        .append("svg")
-        .attr("width", bw - options.xAxisMargin)
-        .attr("height", bw - options.xAxisMargin)
-        .attr("style", "overflow: visible")
-        .attr("viewBox", [0, 0, bw, bw]);
-      chart
-        .selectAll("g")
-        .data(events)
-        .join("g")
-        .call((g) => {
-          // draw the single curve chart: include the label and curve bar
+      function drawChartBar() {
+        const canvas = document.createElement("canvas");
+        canvas.style.position = "absolute";
+        canvas.style.zIndex = -1;
+        canvas.style.top = 0;
+        canvas.style.left = 0;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.setAttribute("width", bw);
+        canvas.setAttribute("height", bw);
+        cc.current.append(canvas);
 
-          const p = g
-            .append("path")
-            .attr("class", "bar")
-            .attr("data-event-index", (e, index) => index);
-          p.transition()
-            .duration(750)
-            .ease(d3.easeQuadIn)
-            .attrTween("d", (e, index) => {
+        const actualRaidusLength = hbw - options.xAxisMargin / 2;
+
+        const context = canvas.getContext("2d");
+        console.info("canvas...", canvas.width, canvas.height);
+
+        context.save();
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.translate(canvas.width / 2, canvas.height / 2);
+
+        context.beginPath();
+        const memChart = d3.create("memchart");
+        memChart
+          .selectAll("memchart.bar")
+          .data(events)
+          .join("memchart:bar")
+          .call((g) => {
+            // draw the single curve chart: include the label and curve bar
+            const p = g
+              .append("memchart.bar.stick")
+              .attr("class", "bar")
+              .attr("data-event-index", (e, index) => index);
+            p.attr("d", (e, index) => {
+              context.beginPath();
               const arc = d3s
                 .arc()
-                .innerRadius(hbw - thinkness - (thinkness + gutter) * index)
-                .outerRadius(hbw - (thinkness + gutter) * index)
-                .startAngle(0);
-              const interpolate = d3.interpolate(
-                0,
-                scaleAngle(100 * e.period.value)
-              );
-              return (t) => {
-                return arc({ endAngle: interpolate(t) });
-              };
-            })
-            .attr("stroke", (e, index) => colors[index])
-            .attr("fill", (e, index) =>
-              e.period.value < 0
-                ? `url(#negative-color-${index})`
-                : colors[index]
-            );
+                .context(context)
+                .innerRadius(
+                  actualRaidusLength - thinkness - (thinkness + gutter) * index
+                )
+                .outerRadius(actualRaidusLength - (thinkness + gutter) * index)
+                .startAngle(0)
+                .endAngle(scaleAngle(100 * e.period.value));
+              arc(e);
+              context.fillStyle = colors[index];
+              context.fill();
+            });
 
-          const text = g.append("text");
-          text
-            .text((e) => e.eventInfo.name)
-            .attr("text-anchor", "end")
-            .attr("alignment-baseline", "middle")
-            .attr(
-              "style",
-              `
-                font-family: inherit; font-size: 1.2em; 
-                text-shadow: -2px -2px 0 #fff,  2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff;
-            `
-            )
-            .attr("dy", thinkness / 2)
-            .attr("dx", gutter)
-            .attr("y", (e, index) => -hbw + (thinkness + gutter) * index)
-            .transition()
-            .duration(750)
-            .attrTween("dx", () => d3.interpolate(gutter, -gutter));
-        });
+            // p.transition()
+            //   .duration(750)
+            //   .ease(d3.easeQuadIn)
+            //   .attrTween("d", (e, index) => {
+            //     const arc = d3s
+            //       .arc()
+            //       .context(context)
+            //       .innerRadius(hbw - thinkness - (thinkness + gutter) * index)
+            //       .outerRadius(hbw - (thinkness + gutter) * index)
+            //       .startAngle(0);
+            //     const interpolate = d3.interpolate(
+            //       0,
+            //       scaleAngle(100 * e.period.value)
+            //     );
+            //     return (t) => {
+            //       console.info(t);
+            //       return arc({ endAngle: interpolate(t) });
+            //     };
+            //   })
+          });
+      }
 
       if (cc.current.lastChild) {
         cc.current.removeChild(cc.current.lastChild);
       }
       cc.current.append(svg.node());
+      drawChartBar();
 
       // tooltip
       const tooltip = d3
@@ -235,18 +239,11 @@ function RadiusChart({
   return (
     <div>
       <div ref={ttc} className={classes.tooltip}>
-        {eventFocus ? tooltipRender(eventFocus): null}
+        {eventFocus ? tooltipRender(eventFocus) : null}
       </div>
       <div ref={cc} style={style}></div>
     </div>
   );
 }
 
-export function DemoRadiusChart() {
-  return (
-    <div style={{ display: "flex" }}>
-      <RadiusSvg events={demoEvents} />
-      <RadiusCanvas events={demoEvents} />
-    </div>
-  );
-}
+export { RadiusChart };

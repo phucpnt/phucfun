@@ -1,18 +1,7 @@
 import React from "react";
-import * as ReactDOM from "react-dom";
-import { action } from "@storybook/addon-actions";
-import { Button } from "@storybook/react/demo";
 import * as d3 from "d3";
 import * as d3s from "d3-shape";
-import { events as demoEvents } from "./sample-data";
 import { createUseStyles } from "react-jss";
-import {RadiusChart as RadiusCanvas} from '../components/radius-canvas';
-import {RadiusChart as RadiusSvg} from '../components/radius-svg';
-
-export default {
-  title: "D3",
-  component: Button,
-};
 
 const colors = [
   "#114559",
@@ -39,7 +28,7 @@ const useStyle = createUseStyles({
 });
 
 function RadiusChart({
-  events = demoEvents,
+  events = [],
   options = { xAxisMargin: 100 },
   style = { height: 600, width: 600, fontFamily: "Roboto, sans-serif" },
   tooltipRender = () => null,
@@ -47,7 +36,7 @@ function RadiusChart({
   const classes = useStyle();
   const cc = React.useRef();
   const ttc = React.useRef();
-  const [ eventFocus, setEventFocus ] = React.useState(null);
+  const [eventFocus, setEventFocus] = React.useState(null);
 
   const bw = 600;
   const hbw = 300;
@@ -235,18 +224,11 @@ function RadiusChart({
   return (
     <div>
       <div ref={ttc} className={classes.tooltip}>
-        {eventFocus ? tooltipRender(eventFocus): null}
+        {eventFocus ? tooltipRender(eventFocus) : null}
       </div>
       <div ref={cc} style={style}></div>
     </div>
   );
 }
 
-export function DemoRadiusChart() {
-  return (
-    <div style={{ display: "flex" }}>
-      <RadiusSvg events={demoEvents} />
-      <RadiusCanvas events={demoEvents} />
-    </div>
-  );
-}
+export { RadiusChart };
